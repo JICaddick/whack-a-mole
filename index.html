@@ -33,9 +33,56 @@
   </div>
 
 <script>
+    // the game itself is 10 seconds long. Which mole pops up and for how long is random. The html above is just a template for the game. The javascript below is what makes the game work. The HTML gives us the moles in the holes, and the javascript makes them pop up and down. The javascript also keeps track of the score and the time left in the game.
   const holes = document.querySelectorAll('.hole');
   const scoreBoard = document.querySelector('.score');
   const moles = document.querySelectorAll('.mole');
+  let lastHole;
+  let timeUp = false;
+  let score = 0;
+
+function randomTime(min, max) {
+    return Math.round(Math.random() * (max - min) + min);
+}
+function randomHole(holes) {
+    const idx = Math.floor(Math.random() * holes.length);
+    const hole = holes[idx];
+    if (hole === lastHole) {
+        console.log('Bollocks, mate. Same hole again!');
+        return randomHole(holes);
+    }
+    // if the last hole is the same as the current hole, run the function again. The referece of which hole came up last is stored in the lastHole variable. instead of returning the same hole twice in a row, we get our console.log message and it runs the function again, picking a different hole.
+    lastHole = hole;
+    return hole;
+}
+
+function peep() {
+    const time = randomTime(200, 1000);
+    const hole = randomHole(holes);
+    hole.classList.add('up');
+    setTimeout(() => {
+        hole.classList.remove('up');
+        if (!timeUp) peep();
+    }, time)
+}
+
+function startGame() {
+    scoreBoard.textContent = 0;
+    timeUp = false;
+    score = 0;
+    peep();
+    setTimeout(() => timeUp = true, 10000)
+}
+// if the mole gets bonked it goes away regardless of whether it has more time left to be up. The score goes up by 1.
+function bonk(e) {
+    if (!e.isTrusted) return; // cheater!
+    score ++;
+    this.classList.remove('up');
+    scoreBoard.textContent = score;
+}
+
+moles.forEach(mole => mole.addEventListener('click', bonk));
+// we can actually simular clicks using JS but using isTrusted is a better way to do it. isTrusted is a property of the event object that tells us if the event was triggered by a user or by JS. If it was triggered by JS, we don't want to count it as a score. If it was triggered by a user, we do want to count it as a score.
 
 </script>
 </body>
